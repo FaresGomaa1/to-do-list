@@ -6,17 +6,27 @@ const exportButton = document.getElementById("export-button");
 const importForm = document.getElementById("import-form");
 const importInput = document.getElementById("import-input");
 
-// Load initial to-do items from JSON file (or use empty array)
+// Initialize to-do items array
 let todos = [];
 
 async function fetchTodos() {
   try {
     const response = await fetch("todos.json");
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
     const data = await response.json();
-    todos = data;
-    renderTodoList();
+    if (Array.isArray(data)) {
+        todos = data;
+        renderTodoList();
+    } else {
+        console.error("Data fetched is not an array format.");
+    }
+    
   } catch (error) {
-    console.error(error);
+    console.error('Fetch error: ' + error.message);
   }
 }
 
@@ -38,9 +48,7 @@ form.addEventListener("submit", (event) => {
 exportButton.addEventListener("click", (event) => {
   event.preventDefault();
   const dataStr = JSON.stringify(todos);
-  const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(
-    dataStr
-  )}`;
+  const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
   const exportLink = document.createElement("a");
   exportLink.setAttribute("href", dataUri);
   exportLink.setAttribute("download", "todos.json");
@@ -60,10 +68,10 @@ importForm.addEventListener("submit", (event) => {
       renderTodoList();
       importInput.value = "";
     } else {
-      throw new Error("Import data is not an array.");
+      throw new Error("Imported data is not an array format.");
     }
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
     alert("Invalid JSON data. Please check your input and try again.");
   }
 });
